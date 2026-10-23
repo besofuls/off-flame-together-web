@@ -373,11 +373,6 @@ export default function AdminDashboard({ onExit }: { onExit: () => void }) {
             <div className="form-card">
               <p className="kicker">{vi ? ' Khu vực bảo mật' : 'Protected Area'}</p>
               <h2>{vi ? 'Đăng nhập Quản trị Beta' : 'Beta Admin Sign In'}</h2>
-              <p className="muted-text">
-                {vi
-                  ? 'Chỉ dành cho tài khoản quản trị trong bảng admin_users (xác thực qua Supabase Auth + RLS).'
-                  : 'Restricted to dedicated application admin accounts listed in admin_users (enforced via Supabase Auth + RLS).'}
-              </p>
               <form onSubmit={handleLogin}>
                 <label>
                   Email *
