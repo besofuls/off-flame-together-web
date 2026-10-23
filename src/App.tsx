@@ -1,6 +1,14 @@
+import { useEffect, useState } from 'react'
+import AdminDashboard from './components/AdminDashboard'
 import FeedbackForm from './components/FeedbackForm'
 import { ITCH_URL } from './content'
 import { useLang } from './i18n'
+
+function isAdminLocation(): boolean {
+  const h = window.location.hash.toLowerCase()
+  const p = window.location.pathname.toLowerCase().replace(/\/+$/, '')
+  return h === '#admin' || h.startsWith('#/admin') || p.endsWith('/admin')
+}
 
 function Picture({ name, alt, eager = false }: { name: string; alt: string; eager?: boolean }) {
   const base = import.meta.env.BASE_URL
@@ -40,6 +48,32 @@ function LangToggle() {
 
 export default function App() {
   const { t } = useLang()
+  const [adminView, setAdminView] = useState<boolean>(isAdminLocation)
+
+  useEffect(() => {
+    const sync = () => setAdminView(isAdminLocation())
+    window.addEventListener('hashchange', sync)
+    window.addEventListener('popstate', sync)
+    return () => {
+      window.removeEventListener('hashchange', sync)
+      window.removeEventListener('popstate', sync)
+    }
+  }, [])
+
+  function exitAdmin() {
+    const base = import.meta.env.BASE_URL || '/'
+    if (window.location.pathname.toLowerCase().replace(/\/+$/, '').endsWith('/admin')) {
+      window.history.pushState({}, '', base)
+    } else {
+      window.location.hash = ''
+    }
+    setAdminView(false)
+  }
+
+  if (adminView) {
+    return <AdminDashboard onExit={exitAdmin} />
+  }
+
   return (
     <>
       <a className="skip" href="#main">
@@ -166,8 +200,11 @@ export default function App() {
       </main>
 
       <footer className="footer">
-        <div className="wrap">
+        <div className="wrap footer-row">
           <p>{t.footer}</p>
+          <a href="#/admin" className="footer-admin-link">
+            Admin Dashboard →
+          </a>
         </div>
       </footer>
     </>

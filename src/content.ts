@@ -41,6 +41,8 @@ export type Copy = {
     sendMore: string
     name: string
     email: string
+    buildVersion: string
+    buildUnselected: string
     rating: string
     star: (n: number) => string
     category: string
@@ -135,6 +137,8 @@ export const copy: Record<Lang, Copy> = {
       sendMore: 'Gửi thêm',
       name: 'Tên (không bắt buộc)',
       email: 'Email (không bắt buộc)',
+      buildVersion: 'Phiên bản đã chơi (không bắt buộc)',
+      buildUnselected: '— Không chọn / Không rõ —',
       rating: 'Mức độ hài lòng *',
       star: (n) => `${n} sao`,
       category: 'Chủ đề',
@@ -222,6 +226,8 @@ export const copy: Record<Lang, Copy> = {
       sendMore: 'Send another',
       name: 'Name (optional)',
       email: 'Email (optional)',
+      buildVersion: 'Build version played (optional)',
+      buildUnselected: '— Not specified —',
       rating: 'How satisfied are you? *',
       star: (n) => `${n} star${n > 1 ? 's' : ''}`,
       category: 'Topic',

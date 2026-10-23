@@ -1,5 +1,5 @@
-import { useState, type FormEvent } from 'react'
-import { isSupabaseConfigured, supabase } from '../lib/supabase'
+import { useEffect, useState, type FormEvent } from 'react'
+import { isSupabaseConfigured, supabase, type BuildRow } from '../lib/supabase'
 import { useLang } from '../i18n'
 
 type Mode = 'feedback' | 'bug'
@@ -18,6 +18,19 @@ export default function FeedbackForm() {
   // Store the error as a key so it re-translates if the language changes.
   const [errorKey, setErrorKey] = useState<'errNotConfigured' | 'errRating' | 'errSubmit' | null>(null)
   const [rating, setRating] = useState(0)
+  const [builds, setBuilds] = useState<Pick<BuildRow, 'id' | 'version' | 'title'>[]>([])
+
+  useEffect(() => {
+    if (!supabase) return
+    supabase
+      .from('builds')
+      .select('id, version, title')
+      .eq('is_published', true)
+      .order('released_at', { ascending: false })
+      .then(({ data }) => {
+        if (data) setBuilds(data)
+      })
+  }, [])
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -42,10 +55,12 @@ export default function FeedbackForm() {
     }
 
     setStatus('sending')
+    const buildId = blank(fd.get('build_id'))
     // No .select(): public visitors have INSERT only, they cannot read rows back.
     const { error: dbError } =
       mode === 'feedback'
         ? await supabase.from('feedback').insert({
+            build_id: buildId,
             player_name: blank(fd.get('name')),
             player_email: blank(fd.get('email')),
             rating,
@@ -53,6 +68,7 @@ export default function FeedbackForm() {
             message: String(fd.get('message') ?? '').trim(),
           })
         : await supabase.from('bug_reports').insert({
+            build_id: buildId,
             reporter_name: blank(fd.get('name')),
             reporter_email: blank(fd.get('email')),
             title: String(fd.get('title') ?? '').trim(),
@@ -109,6 +125,21 @@ export default function FeedbackForm() {
               <input name="email" type="email" maxLength={254} autoComplete="email" />
             </label>
           </div>
+
+          {builds.length > 0 && (
+            <label>
+              {f.buildVersion}
+              <select name="build_id" defaultValue="">
+                <option value="">{f.buildUnselected}</option>
+                {builds.map((b) => (
+                  <option key={b.id} value={b.id}>
+                    {b.version}
+                    {b.title ? ` — ${b.title}` : ''}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
 
           {/* Honeypot, hidden from people */}
           <input name="website" tabIndex={-1} autoComplete="off" className="hp" aria-hidden="true" />
