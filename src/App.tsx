@@ -3,10 +3,11 @@ import { ITCH_URL } from './content'
 import { useLang } from './i18n'
 
 function Picture({ name, alt, eager = false }: { name: string; alt: string; eager?: boolean }) {
+  const base = import.meta.env.BASE_URL
   return (
     <picture>
-      <source srcSet={`/img/${name}.webp`} type="image/webp" />
-      <img src={`/img/${name}.jpg`} alt={alt} loading={eager ? 'eager' : 'lazy'} decoding="async" />
+      <source srcSet={`${base}img/${name}.webp`} type="image/webp" />
+      <img src={`${base}img/${name}.jpg`} alt={alt} loading={eager ? 'eager' : 'lazy'} decoding="async" />
     </picture>
   )
 }
