@@ -179,6 +179,8 @@ textarea { resize: vertical; }
 .checkbox-row { display: flex; align-items: center; gap: 0.6rem; cursor: pointer; }
 .checkbox-row input { width: 18px; height: 18px; margin: 0; }
 .inline-add-ref { display: grid; grid-template-columns: 1fr 130px auto; gap: 0.6rem; margin-top: 1rem; align-items: center; }
+.inline-edit-snap { padding: 1.1rem; background: var(--bg); border: 1px solid var(--line); border-radius: var(--r); margin-block: 1rem; display: grid; gap: 0.8rem; }
+.inline-edit-snap h4 { margin: 0; color: var(--cream); font-family: var(--display); text-transform: uppercase; font-size: 1.2rem; }
 @media (max-width: 640px) {
   .inline-add-ref { grid-template-columns: 1fr; }
 }

@@ -45,6 +45,8 @@ export default function AdminDashboard({ onExit }: { onExit: () => void }) {
 
   // Build editor state
   const [editingBuild, setEditingBuild] = useState<BuildRow | null>(null)
+  // Snapshot editor state
+  const [editingSnapshot, setEditingSnapshot] = useState<AnalyticsSnapshotRow | null>(null)
 
   const checkAdminRole = useCallback(async (activeSession: Session | null) => {
     if (!supabase || !activeSession) {
@@ -301,6 +303,58 @@ export default function AdminDashboard({ onExit }: { onExit: () => void }) {
     form.reset()
     await loadAllData()
     flash(vi ? 'Đã thêm nguồn truy cập.' : 'Traffic referrer added.')
+  }
+
+  async function handleUpdateSnapshot(e: FormEvent<HTMLFormElement>, snapshotId: string) {
+    e.preventDefault()
+    if (!supabase) return
+    const form = e.currentTarget
+    const fd = new FormData(form)
+    const numOrNull = (k: string) => {
+      const raw = String(fd.get(k) ?? '').trim()
+      return raw === '' ? null : Number(raw)
+    }
+    const payload = {
+      captured_on: String(fd.get('captured_on') ?? '').trim(),
+      views: numOrNull('views'),
+      unique_views: numOrNull('unique_views'),
+      downloads: numOrNull('downloads'),
+      notes: String(fd.get('notes') ?? '').trim() || null,
+    }
+    setDataError('')
+    const { error } = await supabase.from('analytics_snapshots').update(payload).eq('id', snapshotId)
+    if (error) {
+      setDataError(error.message)
+      return
+    }
+    setEditingSnapshot(null)
+    await loadAllData()
+    flash(vi ? 'Đã cập nhật số liệu snapshot.' : 'Analytics snapshot updated.')
+  }
+
+  async function handleDeleteSnapshot(snapshotId: string) {
+    if (!supabase) return
+    if (!window.confirm(vi ? 'Bạn có chắc chắn muốn xóa snapshot này?' : 'Are you sure you want to delete this snapshot?')) return
+    setDataError('')
+    const { error } = await supabase.from('analytics_snapshots').delete().eq('id', snapshotId)
+    if (error) {
+      setDataError(error.message)
+      return
+    }
+    await loadAllData()
+    flash(vi ? 'Đã xóa snapshot.' : 'Snapshot deleted.')
+  }
+
+  async function handleDeleteReferrer(referrerId: string) {
+    if (!supabase) return
+    setDataError('')
+    const { error } = await supabase.from('traffic_referrers').delete().eq('id', referrerId)
+    if (error) {
+      setDataError(error.message)
+      return
+    }
+    await loadAllData()
+    flash(vi ? 'Đã xóa nguồn truy cập.' : 'Referrer removed.')
   }
 
   const buildLabel = (buildId: string | null) => {
@@ -981,10 +1035,64 @@ export default function AdminDashboard({ onExit }: { onExit: () => void }) {
                                 : 'Manual Entry'}
                           </span>
                         </div>
-                        <span className="small-text muted-text">
-                          {vi ? 'Ngày chụp:' : 'Captured on:'} {s.captured_on}
-                        </span>
+                        <div className="row-actions">
+                          <span className="small-text muted-text" style={{ alignSelf: 'center' }}>
+                            {vi ? 'Ngày chụp:' : 'Captured on:'} {s.captured_on}
+                          </span>
+                          <button
+                            type="button"
+                            className="btn ghost btn-sm"
+                            onClick={() => setEditingSnapshot(editingSnapshot?.id === s.id ? null : s)}
+                          >
+                            {editingSnapshot?.id === s.id ? (vi ? 'Đóng' : 'Close') : vi ? 'Sửa số liệu' : 'Edit numbers'}
+                          </button>
+                          <button
+                            type="button"
+                            className="btn ghost btn-sm"
+                            onClick={() => handleDeleteSnapshot(s.id)}
+                          >
+                            {vi ? 'Xóa' : 'Delete'}
+                          </button>
+                        </div>
                       </div>
+
+                      {editingSnapshot?.id === s.id && (
+                        <form className="inline-edit-snap" onSubmit={(e) => handleUpdateSnapshot(e, s.id)}>
+                          <h4>{vi ? 'Cập nhật số liệu cho snapshot này:' : 'Update metrics for this snapshot:'}</h4>
+                          <div className="grid2">
+                            <label>
+                              Views
+                              <input name="views" type="number" min={0} defaultValue={s.views ?? ''} />
+                            </label>
+                            <label>
+                              Downloads
+                              <input name="downloads" type="number" min={0} defaultValue={s.downloads ?? ''} />
+                            </label>
+                          </div>
+                          <div className="grid2">
+                            <label>
+                              Unique Views ({vi ? 'để trống nếu không có' : 'blank if unavailable'})
+                              <input name="unique_views" type="number" min={0} defaultValue={s.unique_views ?? ''} />
+                            </label>
+                            <label>
+                              {vi ? 'Ngày ghi nhận (captured_on)' : 'Captured on'}
+                              <input name="captured_on" type="date" required defaultValue={s.captured_on} />
+                            </label>
+                          </div>
+                          <label>
+                            {vi ? 'Ghi chú' : 'Notes'}
+                            <textarea name="notes" rows={2} maxLength={1000} defaultValue={s.notes ?? ''} />
+                          </label>
+                          <div className="cta-row">
+                            <button type="submit" className="btn primary btn-sm">
+                              {vi ? 'Lưu thay đổi' : 'Save changes'}
+                            </button>
+                            <button type="button" className="btn ghost btn-sm" onClick={() => setEditingSnapshot(null)}>
+                              {vi ? 'Hủy' : 'Cancel'}
+                            </button>
+                          </div>
+                        </form>
+                      )}
 
                       <div className="stat-grid snapshot-metrics">
                         <div className="stat-card">
@@ -1035,6 +1143,7 @@ export default function AdminDashboard({ onExit }: { onExit: () => void }) {
                               <tr>
                                 <th>Referrer URL / Source</th>
                                 <th>Visits</th>
+                                <th style={{ width: 40 }}></th>
                               </tr>
                             </thead>
                             <tbody>
@@ -1046,6 +1155,16 @@ export default function AdminDashboard({ onExit }: { onExit: () => void }) {
                                     <td>{r.referrer}</td>
                                     <td>
                                       <strong>{r.views}</strong>
+                                    </td>
+                                    <td style={{ textAlign: 'right' }}>
+                                      <button
+                                        type="button"
+                                        className="btn ghost btn-sm"
+                                        title={vi ? 'Xóa nguồn này' : 'Remove this referrer'}
+                                        onClick={() => handleDeleteReferrer(r.id)}
+                                      >
+                                        ✕
+                                      </button>
                                     </td>
                                   </tr>
                                 ))}
