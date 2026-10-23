@@ -186,15 +186,18 @@ export default function App() {
           <p className="kicker">{t.teamKicker}</p>
           <h2>{t.teamTitle}</h2>
           <ul className="team">
-            {t.team.map((m, i) => (
-              <li key={i} className={m.placeholder ? 'placeholder' : ''}>
-                <div className="avatar" aria-hidden="true">
-                  {m.name.charAt(0)}
-                </div>
-                <strong>{m.name}</strong>
-                <span>{m.role}</span>
-              </li>
-            ))}
+            {t.team.map((m, i) => {
+              const initial = m.name.trim().split(/\s+/).pop()?.charAt(0).toUpperCase() || m.name.charAt(0)
+              return (
+                <li key={i} className={m.placeholder ? 'placeholder' : ''}>
+                  <div className="avatar" aria-hidden="true">
+                    {initial}
+                  </div>
+                  <strong>{m.name}</strong>
+                  <span>{m.role}</span>
+                </li>
+              )
+            })}
           </ul>
         </section>
       </main>

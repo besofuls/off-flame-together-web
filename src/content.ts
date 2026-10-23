@@ -64,9 +64,23 @@ export type Copy = {
   }
 }
 
-// TODO(team): replace placeholders with real members before submission.
-const viTeam: Member[] = [1, 2, 3, 4, 5, 6].map((n) => ({ name: `Tên thành viên ${n}`, role: 'Vai trò', placeholder: true }))
-const enTeam: Member[] = [1, 2, 3, 4, 5, 6].map((n) => ({ name: `Team member ${n}`, role: 'Role', placeholder: true }))
+const viTeam: Member[] = [
+  { name: 'Trần Ngọc Minh', role: 'Thành viên dự án', placeholder: false },
+  { name: 'Hồ Kim Thành', role: 'Thành viên dự án', placeholder: false },
+  { name: 'Ngô Triều Duy', role: 'Thành viên dự án', placeholder: false },
+  { name: 'Nguyễn Đình Khải', role: 'Thành viên dự án', placeholder: false },
+  { name: 'Trần Uy Đạt', role: 'Thành viên dự án', placeholder: false },
+  { name: 'Trần Thiện Nhân', role: 'Thành viên dự án', placeholder: false },
+]
+
+const enTeam: Member[] = [
+  { name: 'Trần Ngọc Minh', role: 'Project Member', placeholder: false },
+  { name: 'Hồ Kim Thành', role: 'Project Member', placeholder: false },
+  { name: 'Ngô Triều Duy', role: 'Project Member', placeholder: false },
+  { name: 'Nguyễn Đình Khải', role: 'Project Member', placeholder: false },
+  { name: 'Trần Uy Đạt', role: 'Project Member', placeholder: false },
+  { name: 'Trần Thiện Nhân', role: 'Project Member', placeholder: false },
+]
 
 // Only features that exist in the current prototype.
 export const copy: Record<Lang, Copy> = {
