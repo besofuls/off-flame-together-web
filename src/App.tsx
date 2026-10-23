@@ -1,5 +1,6 @@
 import FeedbackForm from './components/FeedbackForm'
-import { ITCH_URL, features, gallery, problem, solution, team } from './content'
+import { ITCH_URL } from './content'
+import { useLang } from './i18n'
 
 function Picture({ name, alt, eager = false }: { name: string; alt: string; eager?: boolean }) {
   return (
@@ -11,58 +12,69 @@ function Picture({ name, alt, eager = false }: { name: string; alt: string; eage
 }
 
 function ItchButton({ className = '' }: { className?: string }) {
+  const { t } = useLang()
   if (!ITCH_URL) {
     return (
       <span className={`btn disabled ${className}`} role="note">
-        Link itch.io chưa được cấu hình
+        {t.itchMissing}
       </span>
     )
   }
   return (
     <a className={`btn primary ${className}`} href={ITCH_URL} target="_blank" rel="noopener noreferrer">
-      Tải bản beta trên itch.io
+      {t.itchButton}
     </a>
   )
 }
 
+function LangToggle() {
+  const { lang, t, toggle } = useLang()
+  return (
+    <button type="button" className="lang" onClick={toggle} aria-label={t.langSwitch} title={t.langSwitch}>
+      <span className={lang === 'vi' ? 'on' : ''}>VI</span>
+      <span className={lang === 'en' ? 'on' : ''}>EN</span>
+    </button>
+  )
+}
+
 export default function App() {
+  const { t } = useLang()
   return (
     <>
       <a className="skip" href="#main">
-        Bỏ qua điều hướng
+        {t.skip}
       </a>
       <header className="nav">
         <a className="brand" href="#top">
           Off Flame Together
         </a>
-        <nav aria-label="Chính">
-          <a href="#problem">Bài toán</a>
-          <a href="#features">Tính năng</a>
-          <a href="#screens">Hình ảnh</a>
-          <a href="#feedback">Góp ý</a>
-          <a href="#team">Đội ngũ</a>
+        <nav aria-label={t.navLabel}>
+          <a href="#problem">{t.nav.problem}</a>
+          <a href="#features">{t.nav.features}</a>
+          <a href="#screens">{t.nav.screens}</a>
+          <a href="#feedback">{t.nav.feedback}</a>
+          <a href="#team">{t.nav.team}</a>
         </nav>
+        <LangToggle />
         <ItchButton className="nav-cta" />
       </header>
 
       <main id="main">
         <section className="hero" id="top">
-          <Picture name="water-hose" alt="Lính cứu hỏa xịt nước vào đám cháy trên phố" eager />
+          <Picture name="water-hose" alt={t.hero.alt} eager />
           <div className="hero-shade" />
           <div className="wrap hero-copy">
-            <p className="eyebrow">Prototype · Bản beta · Offline trên PC</p>
+            <p className="eyebrow">{t.hero.eyebrow}</p>
             <h1>
               Off Flame
               <br />
               Together
             </h1>
-            <p className="lede">
-              Game cứu hỏa chơi offline trên PC. Cầm vòi nước, dập lửa, hoàn thành nhiệm vụ trước khi hết giờ.
-            </p>
+            <p className="lede">{t.hero.lede}</p>
             <div className="cta-row">
               <ItchButton />
               <a className="btn ghost" href="#feedback">
-                Gửi góp ý
+                {t.hero.feedbackCta}
               </a>
             </div>
           </div>
@@ -70,23 +82,23 @@ export default function App() {
 
         <section className="wrap split" id="problem">
           <div>
-            <p className="kicker">Vấn đề</p>
-            <h2>{problem.title}</h2>
-            <p>{problem.body}</p>
+            <p className="kicker">{t.problemKicker}</p>
+            <h2>{t.problem.title}</h2>
+            <p>{t.problem.body}</p>
           </div>
           <div className="solution">
-            <p className="kicker">Giải pháp</p>
-            <h2>{solution.title}</h2>
-            <p>{solution.body}</p>
+            <p className="kicker">{t.solutionKicker}</p>
+            <h2>{t.solution.title}</h2>
+            <p>{t.solution.body}</p>
           </div>
         </section>
 
         <section className="features" id="features">
           <div className="wrap">
-            <p className="kicker">Tính năng hiện có</p>
-            <h2>Những gì bản prototype làm được hôm nay</h2>
+            <p className="kicker">{t.featuresKicker}</p>
+            <h2>{t.featuresTitle}</h2>
           </div>
-          {features.map((f, i) => (
+          {t.features.map((f, i) => (
             <article className={`feature wrap ${i % 2 ? 'flip' : ''}`} key={f.id}>
               <div className="feature-media">
                 <Picture name={f.img} alt={f.alt} />
@@ -101,10 +113,10 @@ export default function App() {
         </section>
 
         <section className="wrap" id="screens">
-          <p className="kicker">Hình ảnh</p>
-          <h2>Ảnh chụp từ game</h2>
+          <p className="kicker">{t.screensKicker}</p>
+          <h2>{t.screensTitle}</h2>
           <ul className="gallery">
-            {gallery.map((g) => (
+            {t.gallery.map((g) => (
               <li key={g.img}>
                 <figure>
                   <Picture name={g.img} alt={g.alt} />
@@ -118,9 +130,9 @@ export default function App() {
         <section className="download" id="download">
           <div className="wrap download-inner">
             <div>
-              <p className="kicker">Bản beta</p>
-              <h2>Tải về và chơi thử</h2>
-              <p>Phiên bản Windows, phát hành trên itch.io. Game chạy offline, không cần tạo tài khoản.</p>
+              <p className="kicker">{t.download.kicker}</p>
+              <h2>{t.download.title}</h2>
+              <p>{t.download.text}</p>
             </div>
             <ItchButton />
           </div>
@@ -128,21 +140,19 @@ export default function App() {
 
         <section className="wrap split" id="feedback">
           <div>
-            <p className="kicker">Phản hồi</p>
-            <h2>Chơi xong, cho chúng tôi biết nhé</h2>
-            <p>
-              Mọi góp ý và báo lỗi đều được đội phát triển đọc. Tên và email là tùy chọn; chỉ đội quản trị mới xem được nội dung bạn gửi.
-            </p>
+            <p className="kicker">{t.feedback.kicker}</p>
+            <h2>{t.feedback.title}</h2>
+            <p>{t.feedback.text}</p>
           </div>
           <FeedbackForm />
         </section>
 
         <section className="wrap" id="team">
-          <p className="kicker">Đội ngũ</p>
-          <h2>Người làm ra Off Flame Together</h2>
+          <p className="kicker">{t.teamKicker}</p>
+          <h2>{t.teamTitle}</h2>
           <ul className="team">
-            {team.map((m) => (
-              <li key={m.name} className={m.placeholder ? 'placeholder' : ''}>
+            {t.team.map((m, i) => (
+              <li key={i} className={m.placeholder ? 'placeholder' : ''}>
                 <div className="avatar" aria-hidden="true">
                   {m.name.charAt(0)}
                 </div>
@@ -156,7 +166,7 @@ export default function App() {
 
       <footer className="footer">
         <div className="wrap">
-          <p>Off Flame Together · Dự án học thuật EXE201 · Game chạy offline, website này chỉ để phân phối bản beta và thu thập phản hồi.</p>
+          <p>{t.footer}</p>
         </div>
       </footer>
     </>

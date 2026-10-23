@@ -47,6 +47,11 @@ section.wrap, .features, .download { padding-block: clamp(3rem, 8vw, 6rem); }
 .nav nav a:hover { color: var(--text); }
 .nav .btn { min-height: 40px; padding: 0 1rem; font-size: 1rem; }
 
+.lang { display: inline-flex; min-height: 40px; padding: 3px; border: 2px solid var(--line); border-radius: var(--r); background: transparent; cursor: pointer; }
+.lang span { display: grid; place-items: center; min-width: 40px; padding: 0 0.5rem; border-radius: 3px; font: 700 1rem var(--display); letter-spacing: 0.08em; color: var(--muted); }
+.lang span.on { background: var(--cream); color: #14181d; }
+.lang:hover { border-color: var(--cream); }
+
 /* Hero */
 .hero { position: relative; min-height: min(88vh, 760px); display: flex; align-items: flex-end; overflow: hidden; }
 .hero picture, .hero img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 70% center; }

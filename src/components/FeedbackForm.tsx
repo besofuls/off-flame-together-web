@@ -1,24 +1,9 @@
 import { useState, type FormEvent } from 'react'
 import { isSupabaseConfigured, supabase } from '../lib/supabase'
+import { useLang } from '../i18n'
 
 type Mode = 'feedback' | 'bug'
 type Status = 'idle' | 'sending' | 'success' | 'error'
-
-const CATEGORIES: [string, string][] = [
-  ['general', 'Chung'],
-  ['gameplay', 'Lối chơi'],
-  ['controls', 'Điều khiển'],
-  ['visuals', 'Đồ họa'],
-  ['audio', 'Âm thanh'],
-  ['difficulty', 'Độ khó'],
-  ['other', 'Khác'],
-]
-const SEVERITIES: [string, string][] = [
-  ['low', 'Thấp'],
-  ['medium', 'Trung bình'],
-  ['high', 'Cao'],
-  ['critical', 'Nghiêm trọng'],
-]
 
 const blank = (v: FormDataEntryValue | null) => {
   const s = typeof v === 'string' ? v.trim() : ''
@@ -26,16 +11,19 @@ const blank = (v: FormDataEntryValue | null) => {
 }
 
 export default function FeedbackForm() {
+  const { t } = useLang()
+  const f = t.form
   const [mode, setMode] = useState<Mode>('feedback')
   const [status, setStatus] = useState<Status>('idle')
-  const [error, setError] = useState('')
+  // Store the error as a key so it re-translates if the language changes.
+  const [errorKey, setErrorKey] = useState<'errNotConfigured' | 'errRating' | 'errSubmit' | null>(null)
   const [rating, setRating] = useState(0)
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
     const form = e.currentTarget
     const fd = new FormData(form)
-    setError('')
+    setErrorKey(null)
 
     if (fd.get('website')) {
       // Honeypot filled by a bot: pretend success, store nothing.
@@ -44,12 +32,12 @@ export default function FeedbackForm() {
     }
     if (!supabase || !isSupabaseConfigured) {
       setStatus('error')
-      setError('Hệ thống nhận phản hồi chưa được cấu hình. Vui lòng thử lại sau.')
+      setErrorKey('errNotConfigured')
       return
     }
     if (mode === 'feedback' && rating === 0) {
       setStatus('error')
-      setError('Vui lòng chọn số sao đánh giá.')
+      setErrorKey('errRating')
       return
     }
 
@@ -76,7 +64,7 @@ export default function FeedbackForm() {
 
     if (dbError) {
       setStatus('error')
-      setError('Không gửi được. Hãy kiểm tra thông tin (email hợp lệ, nội dung không để trống) rồi thử lại.')
+      setErrorKey('errSubmit')
       return
     }
     form.reset()
@@ -87,42 +75,37 @@ export default function FeedbackForm() {
   function switchMode(next: Mode) {
     setMode(next)
     setStatus('idle')
-    setError('')
+    setErrorKey(null)
   }
 
   return (
     <div className="form-card">
-      <div className="tabs" role="tablist" aria-label="Loại phản hồi">
-        <button
-          role="tab"
-          type="button"
-          aria-selected={mode === 'feedback'}
-          onClick={() => switchMode('feedback')}
-        >
-          Góp ý
+      <div className="tabs" role="tablist" aria-label={f.tabsLabel}>
+        <button role="tab" type="button" aria-selected={mode === 'feedback'} onClick={() => switchMode('feedback')}>
+          {f.tabFeedback}
         </button>
         <button role="tab" type="button" aria-selected={mode === 'bug'} onClick={() => switchMode('bug')}>
-          Báo lỗi
+          {f.tabBug}
         </button>
       </div>
 
       {status === 'success' ? (
         <div className="notice ok" role="status">
-          <strong>Đã gửi – cảm ơn bạn!</strong>
-          <p>Phản hồi của bạn đã được lưu cho đội phát triển.</p>
+          <strong>{f.successTitle}</strong>
+          <p>{f.successText}</p>
           <button type="button" className="btn ghost" onClick={() => setStatus('idle')}>
-            Gửi thêm
+            {f.sendMore}
           </button>
         </div>
       ) : (
-        <form onSubmit={onSubmit} key={mode} noValidate={false}>
+        <form onSubmit={onSubmit} key={mode}>
           <div className="grid2">
             <label>
-              Tên (không bắt buộc)
+              {f.name}
               <input name="name" maxLength={80} autoComplete="name" />
             </label>
             <label>
-              Email (không bắt buộc)
+              {f.email}
               <input name="email" type="email" maxLength={254} autoComplete="email" />
             </label>
           </div>
@@ -133,14 +116,14 @@ export default function FeedbackForm() {
           {mode === 'feedback' ? (
             <>
               <fieldset className="stars">
-                <legend>Mức độ hài lòng *</legend>
+                <legend>{f.rating}</legend>
                 <div>
                   {[1, 2, 3, 4, 5].map((n) => (
                     <button
                       key={n}
                       type="button"
                       className={n <= rating ? 'on' : ''}
-                      aria-label={`${n} sao`}
+                      aria-label={f.star(n)}
                       aria-pressed={n === rating}
                       onClick={() => setRating(n)}
                     >
@@ -150,9 +133,9 @@ export default function FeedbackForm() {
                 </div>
               </fieldset>
               <label>
-                Chủ đề
+                {f.category}
                 <select name="category" defaultValue="general">
-                  {CATEGORIES.map(([v, l]) => (
+                  {f.categories.map(([v, l]) => (
                     <option key={v} value={v}>
                       {l}
                     </option>
@@ -160,29 +143,29 @@ export default function FeedbackForm() {
                 </select>
               </label>
               <label>
-                Góp ý của bạn *
+                {f.message}
                 <textarea name="message" required maxLength={2000} rows={5} />
               </label>
             </>
           ) : (
             <>
               <label>
-                Tiêu đề lỗi *
+                {f.bugTitle}
                 <input name="title" required maxLength={150} />
               </label>
               <label>
-                Mô tả lỗi *
+                {f.bugDescription}
                 <textarea name="description" required maxLength={3000} rows={4} />
               </label>
               <label>
-                Các bước tái hiện
+                {f.bugSteps}
                 <textarea name="steps" maxLength={3000} rows={3} />
               </label>
               <div className="grid2">
                 <label>
-                  Mức độ
+                  {f.severity}
                   <select name="severity" defaultValue="medium">
-                    {SEVERITIES.map(([v, l]) => (
+                    {f.severities.map(([v, l]) => (
                       <option key={v} value={v}>
                         {l}
                       </option>
@@ -190,20 +173,20 @@ export default function FeedbackForm() {
                   </select>
                 </label>
                 <label>
-                  Cấu hình máy
-                  <input name="system" maxLength={500} placeholder="VD: Windows 11, GTX 1650, 16GB" />
+                  {f.system}
+                  <input name="system" maxLength={500} placeholder={f.systemPlaceholder} />
                 </label>
               </div>
             </>
           )}
 
-          {status === 'error' && (
+          {status === 'error' && errorKey && (
             <p className="notice err" role="alert">
-              {error}
+              {f[errorKey]}
             </p>
           )}
           <button className="btn primary" type="submit" disabled={status === 'sending'}>
-            {status === 'sending' ? 'Đang gửi…' : mode === 'feedback' ? 'Gửi góp ý' : 'Gửi báo lỗi'}
+            {status === 'sending' ? f.sending : mode === 'feedback' ? f.sendFeedback : f.sendBug}
           </button>
         </form>
       )}

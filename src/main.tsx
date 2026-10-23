@@ -6,9 +6,12 @@ import '@fontsource/barlow/400.css'
 import '@fontsource/barlow/600.css'
 import './styles.css'
 import App from './App'
+import { LangProvider } from './i18n'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App />
+    <LangProvider>
+      <App />
+    </LangProvider>
   </StrictMode>,
 )
